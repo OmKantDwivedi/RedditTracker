@@ -4,7 +4,6 @@ praw==7.7.1
 gspread==5.12.0
 google-auth==2.27.0
 openpyxl==3.1.2
-pandas==2.2.2
-numpy==1.26.4
+pandas==2.2.0
 requests==2.31.0
 python-dotenv==1.0.0
