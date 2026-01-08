@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Comment Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .input-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .hint {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        .example-box {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+
+        .example-box strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .example-box code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-bar-wrapper {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .progress-info {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .current-url {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .results-header h2 {
+            color: #333;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-export {
+            background: #4caf50;
+            color: white;
+            padding: 12px 20px;
+        }
+
+        .btn-export:hover {
+            background: #45a049;
+        }
+
+        .btn-export-sheets {
+            background: #34a853;
+            color: white;
+            padding: 12px 20px;
+        }
+
+        .btn-export-sheets:hover {
+            background: #2d8e47;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .results-table th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .results-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .results-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-no-change {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-ranking-changed {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .status-reply-received {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status-both {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .rank-badge {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .rank-out {
+            color: #999;
+        }
+
+        .url-cell {
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .url-link {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .url-link:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            line-height: 1.6;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .sheets-url-input {
+            background: #f9f9f9;
+            border: 2px solid #34a853;
+        }
+
+        .sheets-icon {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .export-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn-export, .btn-export-sheets {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Reddit Comment Tracker</h1>
+            <p>Track comment rankings and reply activity over time</p>
+        </div>
+
+        <div class="card">
+            <div class="input-section">
+                <h2>📊 Input Spreadsheet</h2>
+                
+                <div class="input-group">
+                    <label class="input-label">
+                        <span class="sheets-icon">📗</span>
+                        Google Sheets URL
+                    </label>
+                    <input type="text" id="spreadsheetUrl" class="input-field sheets-url-input" 
+                           placeholder="https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit...">
+                    <p class="hint">
+                        💡 Paste your Google Sheets link here<br>
+                        <strong>Important:</strong> Sheet must be shared as "Anyone with the link can view"
+                    </p>
+                </div>
+
+                <div class="example-box">
+                    <strong>📋 Required Format:</strong>
+                    Your spreadsheet must have a column named <code>comment_url</code><br><br>
+                    
+                    <strong>✅ How to share your sheet:</strong><br>
+                    1. Open your Google Sheet<br>
+                    2. Click "Share" button (top-right)<br>
+                    3. Change to: "Anyone with the link"<br>
+                    4. Copy the link and paste above
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" id="trackBtn" onclick="startTracking()">
+                    <span>▶️</span>
+                    <span>Start Tracking</span>
+                </button>
+                <button class="btn-secondary" onclick="clearInput()">
+                    <span>🗑️</span>
+                    <span>Clear</span>
+                </button>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="progress-section" id="progressSection">
+                <h3 style="margin-bottom: 15px; color: #333;">⏳ Processing...</h3>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar" id="progressBar">0%</div>
+                </div>
+                <div class="progress-info" id="progressInfo">
+                    Processing 0 of 0 comments
+                </div>
+                <div class="current-url" id="currentUrl"></div>
+            </div>
+        </div>
+
+        <div class="card results-section" id="resultsSection">
+            <div class="results-header">
+                <h2>📊 Results</h2>
+                <div class="export-buttons">
+                    <button class="btn-export-sheets" onclick="exportToGoogleSheets()">
+                        <span>📗</span>
+                        <span>Save to Google Sheets</span>
+                    </button>
+                    <button class="btn-export" onclick="exportToExcel()">
+                        <span>📥</span>
+                        <span>Download Excel</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="summary-stats" id="summaryStats"></div>
+
+            <div style="overflow-x: auto;">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>URL</th>
+                            <th>Status</th>
+                            <th>Present Rank</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pollInterval = null;
+
+        function startTracking() {
+            const url = document.getElementById('spreadsheetUrl').value.trim();
+            const errorDiv = document.getElementById('errorMessage');
+            
+            if (!url) {
+                showError('Please enter your Google Sheets URL');
+                return;
+            }
+
+            if (!url.includes('docs.google.com/spreadsheets')) {
+                showError('Please enter a valid Google Sheets URL');
+                return;
+            }
+
+            errorDiv.classList.remove('active');
+            document.getElementById('trackBtn').disabled = true;
+            document.getElementById('progressSection').classList.add('active');
+            document.getElementById('resultsSection').classList.remove('active');
+
+            fetch('/api/process-spreadsheet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ spreadsheet_url: url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showError(data.error);
+                    resetUI();
+                } else {
+                    startPolling();
+                }
+            })
+            .catch(error => {
+                showError('Failed to process spreadsheet: ' + error.message);
+                resetUI();
+            });
+        }
+
+        function startPolling() {
+            pollInterval = setInterval(checkStatus, 1000);
+        }
+
+        function checkStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    updateProgress(data);
+                    
+                    if (!data.is_running) {
+                        clearInterval(pollInterval);
+                        loadResults();
+                    }
+                });
+        }
+
+        function updateProgress(data) {
+            const percentage = data.total > 0 ? Math.round((data.progress / data.total) * 100) : 0;
+            
+            document.getElementById('progressBar').style.width = percentage + '%';
+            document.getElementById('progressBar').textContent = percentage + '%';
+            document.getElementById('progressInfo').textContent = 
+                `Processing ${data.progress} of ${data.total} comments`;
+            
+            if (data.current_url) {
+                document.getElementById('currentUrl').textContent = 
+                    '🔍 Current: ' + data.current_url;
+            }
+        }
+
+        function loadResults() {
+            fetch('/api/results')
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data.results);
+                    document.getElementById('progressSection').classList.remove('active');
+                    document.getElementById('resultsSection').classList.add('active');
+                    document.getElementById('trackBtn').disabled = false;
+                });
+        }
+
+        function displayResults(results) {
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = '';
+
+            const stats = calculateStats(results);
+            displayStats(stats);
+
+            results.forEach(result => {
+                const row = tbody.insertRow();
+                
+                const urlCell = row.insertCell();
+                urlCell.className = 'url-cell';
+                urlCell.innerHTML = `<a href="${result.URL}" target="_blank" class="url-link">${result.URL}</a>`;
+                
+                const statusCell = row.insertCell();
+                statusCell.innerHTML = `<span class="status-badge ${getStatusClass(result.Status)}">${result.Status}</span>`;
+                
+                const rankCell = row.insertCell();
+                const rankClass = result['Present Rank'] === 'Out of Top 5' ? 'rank-out' : 'rank-badge';
+                rankCell.innerHTML = `<span class="${rankClass}">${result['Present Rank']}</span>`;
+            });
+        }
+
+        function calculateStats(results) {
+            const stats = {
+                total: results.length,
+                inTop5: 0,
+                outOfTop5: 0,
+                rankingChanged: 0,
+                replyReceived: 0
+            };
+
+            results.forEach(r => {
+                if (r['Present Rank'] !== 'Out of Top 5') stats.inTop5++;
+                else stats.outOfTop5++;
+                
+                if (r.Status.includes('Ranking Changed')) stats.rankingChanged++;
+                if (r.Status.includes('Reply Received')) stats.replyReceived++;
+            });
+
+            return stats;
+        }
+
+        function displayStats(stats) {
+            const statsDiv = document.getElementById('summaryStats');
+            statsDiv.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${stats.total}</div>
+                    <div class="stat-label">Total Comments</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.inTop5}</div>
+                    <div class="stat-label">In Top 5</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.rankingChanged}</div>
+                    <div class="stat-label">Ranking Changed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.replyReceived}</div>
+                    <div class="stat-label">Reply Received</div>
+                </div>
+            `;
+        }
+
+        function getStatusClass(status) {
+            if (status.includes('Ranking Changed') && status.includes('Reply Received')) {
+                return 'status-both';
+            } else if (status.includes('Ranking Changed')) {
+                return 'status-ranking-changed';
+            } else if (status.includes('Reply Received')) {
+                return 'status-reply-received';
+            } else {
+                return 'status-no-change';
+            }
+        }
+
+        function exportToGoogleSheets() {
+            // Show loading state
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span>⏳</span><span>Creating Sheet...</span>';
+            btn.disabled = true;
+
+            fetch('/api/export-sheets')
+                .then(response => response.json())
+                .then(data => {
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+
+                    if (data.error) {
+                        showError(data.error);
+                    } else {
+                        // Show success message with link
+                        const successDiv = document.createElement('div');
+                        successDiv.style.cssText = `
+                            position: fixed;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            background: white;
+                            padding: 30px;
+                            border-radius: 12px;
+                            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                            z-index: 1000;
+                            max-width: 500px;
+                            text-align: center;
+                        `;
+                        successDiv.innerHTML = `
+                            <h3 style="color: #34a853; margin-bottom: 15px;">✅ Success!</h3>
+                            <p style="margin-bottom: 20px;">Results exported to Google Sheets</p>
+                            <a href="${data.url}" target="_blank" 
+                               style="display: inline-block; padding: 12px 24px; background: #34a853; 
+                                      color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                                📗 Open Google Sheet
+                            </a>
+                            <button onclick="this.parentElement.remove()" 
+                                    style="display: block; margin: 15px auto 0; padding: 8px 16px; 
+                                           background: #f5f5f5; border: none; border-radius: 6px; cursor: pointer;">
+                                Close
+                            </button>
+                        `;
+                        document.body.appendChild(successDiv);
+                    }
+                })
+                .catch(error => {
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    showError('Failed to export: ' + error.message);
+                });
+        }
+
+        function exportToExcel() {
+            window.location.href = '/api/export';
+        }
+
+        function clearInput() {
+            document.getElementById('spreadsheetUrl').value = '';
+            document.getElementById('errorMessage').classList.remove('active');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            
+            if (message.includes('publicly accessible') || message.includes('not publicly')) {
+                errorDiv.innerHTML = `
+                    <strong>⚠️ Google Sheets Access Error</strong><br><br>
+                    Your Google Sheet is <strong>private</strong> and cannot be accessed.<br><br>
+                    <strong>Quick Fix (30 seconds):</strong><br>
+                    1. Open your Google Sheet<br>
+                    2. Click "Share" button (top-right)<br>
+                    3. Change to: <strong>"Anyone with the link"</strong><br>
+                    4. Copy the link and try again
+                `;
+            } else if (message.includes('comment_url')) {
+                errorDiv.innerHTML = `
+                    <strong>⚠️ Column Name Error</strong><br><br>
+                    ${message}<br><br>
+                    <strong>How to fix:</strong><br>
+                    1. Open your spreadsheet<br>
+                    2. Rename the column to exactly: <code>comment_url</code><br>
+                    3. Make sure no typos or extra spaces<br>
+                    4. Save and try again
+                `;
+            } else {
+                errorDiv.innerHTML = '<strong>⚠️ Error:</strong><br>' + message;
+            }
+            
+            errorDiv.classList.add('active');
+        }
+
+        function resetUI() {
+            document.getElementById('trackBtn').disabled = false;
+            document.getElementById('progressSection').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

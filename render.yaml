@@ -1,0 +1,78 @@
+# Reddit Comment Rank & Reply Tracker - Render.com Deployment
+# https://render.com/docs/yaml-spec
+
+services:
+  # Main Web Application
+  - type: web
+    name: reddit-tracker
+    runtime: python
+    region: oregon  # or singapore, frankfurt, ohio
+    plan: starter  # free, starter, standard, pro
+    buildCommand: |
+      pip install -r requirements.txt
+      # Install Chrome for Selenium
+      apt-get update && apt-get install -y wget gnupg
+      wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+      echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list
+      apt-get update && apt-get install -y google-chrome-stable
+    startCommand: python app_standalone.py
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: HEADLESS_BROWSER
+        value: "true"
+      - key: BROWSER_TIMEOUT
+        value: "30"
+      - key: PAGE_LOAD_WAIT
+        value: "5"
+      - key: API_RATE_LIMIT_DELAY
+        value: "1.0"
+      - key: BROWSER_RATE_LIMIT_DELAY
+        value: "2.0"
+      # Reddit API credentials - set these in Render dashboard
+      - key: REDDIT_CLIENT_ID
+        sync: false  # Must be set manually in dashboard
+      - key: REDDIT_CLIENT_SECRET
+        sync: false  # Must be set manually in dashboard
+      - key: REDDIT_USER_AGENT
+        value: "RedditCommentTracker/1.0 (Render Deployment)"
+      - key: SECRET_KEY
+        generateValue: true  # Auto-generate secure key
+    disk:
+      name: tracker-data
+      mountPath: /app/data
+      sizeGB: 1
+    healthCheckPath: /health
+    autoDeploy: true
+
+---
+# Alternative: Docker-based deployment (more reliable for Chrome/Selenium)
+# Uncomment below and comment out the above if you prefer Docker
+
+# services:
+#   - type: web
+#     name: reddit-tracker
+#     runtime: docker
+#     region: oregon
+#     plan: starter
+#     dockerfilePath: ./Dockerfile.render
+#     envVars:
+#       - key: PORT
+#         value: 8080
+#       - key: HEADLESS_BROWSER
+#         value: "true"
+#       - key: REDDIT_CLIENT_ID
+#         sync: false
+#       - key: REDDIT_CLIENT_SECRET
+#         sync: false
+#       - key: REDDIT_USER_AGENT
+#         value: "RedditCommentTracker/1.0 (Render)"
+#       - key: SECRET_KEY
+#         generateValue: true
+#     disk:
+#       name: tracker-data
+#       mountPath: /app/data
+#       sizeGB: 1
+#     healthCheckPath: /health
