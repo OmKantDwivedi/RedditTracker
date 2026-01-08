@@ -6,7 +6,7 @@ services:
   - type: web
     name: reddit-tracker
     runtime: python
-    region: oregon  # or singapore, frankfurt, ohio
+    region: singapore  # or singapore, frankfurt, ohio
     plan: starter  # free, starter, standard, pro
     buildCommand: |
       pip install -r requirements.txt
