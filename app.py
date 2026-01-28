@@ -81,6 +81,9 @@ def process_comments_background(job_id, comment_urls):
                     active_jobs[job_id]['progress'] = idx
             
             try:
+                # Get previous rank BEFORE updating
+                previous_rank = db.get_previous_rank(url)
+                
                 current_rank = rank_detector.detect_rank(url)
                 has_reply, reply_timestamp = reply_detector.has_recent_reply(url)
                 status = status_calc.calculate_status(url, current_rank, has_reply, reply_timestamp)
@@ -88,7 +91,8 @@ def process_comments_background(job_id, comment_urls):
                 result = {
                     'URL': url,
                     'Status': status,
-                    'Present Rank': current_rank
+                    'Present Rank': current_rank,
+                    'Previous Rank': previous_rank if previous_rank else 'N/A'
                 }
                 
                 with job_lock:
@@ -102,7 +106,8 @@ def process_comments_background(job_id, comment_urls):
                         active_jobs[job_id]['results'].append({
                             'URL': url,
                             'Status': 'Error',
-                            'Present Rank': 'Out of Top 5'
+                            'Present Rank': 'Out of Top 5',
+                            'Previous Rank': 'N/A'
                         })
         
         with job_lock:
@@ -282,6 +287,6 @@ if __name__ == '__main__':
     print(f"\n⚠️  Running Reddit Comment Tracker (Multi-User Fixed)")
     print(f"🌐 Server starting on port {port}")
     print(f"🔒 Debug mode: {app.config['DEBUG']}")
-    print(f"📝 Access at: http://localhost:{port}\n")
+    print(f"📍 Access at: http://localhost:{port}\n")
     
     app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
