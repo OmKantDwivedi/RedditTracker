@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -220,6 +220,13 @@
             color: #333;
         }
 
+        .results-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         .export-buttons {
             display: flex;
             gap: 10px;
@@ -245,6 +252,109 @@
             background: #2d8e47;
         }
 
+        /* Filter Dropdown Styles */
+        .filter-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .filter-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .filter-btn .arrow {
+            transition: transform 0.3s;
+        }
+
+        .filter-btn.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        .filter-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            min-width: 220px;
+            z-index: 100;
+            display: none;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .filter-menu.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .filter-option {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .filter-option:last-child {
+            border-bottom: none;
+        }
+
+        .filter-option:hover {
+            background: #f5f5f5;
+        }
+
+        .filter-option.selected {
+            background: #e8eeff;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .filter-option .icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        .filter-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-left: auto;
+        }
+
+        .active-filter-label {
+            color: #666;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .results-table {
             width: 100%;
             border-collapse: collapse;
@@ -267,6 +377,10 @@
 
         .results-table tr:hover {
             background: #f9f9f9;
+        }
+
+        .results-table tr.hidden-row {
+            display: none;
         }
 
         .status-badge {
@@ -306,8 +420,36 @@
             color: #999;
         }
 
+        .rank-display {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .rank-current {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .rank-previous {
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .rank-change-up {
+            color: #4caf50;
+        }
+
+        .rank-change-down {
+            color: #f44336;
+        }
+
+        .rank-change-same {
+            color: #999;
+        }
+
         .url-cell {
-            max-width: 400px;
+            max-width: 350px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -338,7 +480,7 @@
 
         .summary-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -372,6 +514,17 @@
             margin-bottom: 10px;
         }
 
+        .no-results-message {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            display: none;
+        }
+
+        .no-results-message.show {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .export-buttons {
                 flex-direction: column;
@@ -379,6 +532,24 @@
             }
             
             .btn-export, .btn-export-sheets {
+                width: 100%;
+            }
+
+            .results-controls {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .filter-dropdown {
+                width: 100%;
+            }
+
+            .filter-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .filter-menu {
                 width: 100%;
             }
         }
@@ -448,27 +619,74 @@
         <div class="card results-section" id="resultsSection">
             <div class="results-header">
                 <h2>📊 Results</h2>
-                <div class="export-buttons">
-                    <button class="btn-export-sheets" onclick="exportToGoogleSheets()">
-                        <span>📗</span>
-                        <span>Save to Google Sheets</span>
-                    </button>
-                    <button class="btn-export" onclick="exportToExcel()">
-                        <span>📥</span>
-                        <span>Download Excel</span>
-                    </button>
+                <div class="results-controls">
+                    <!-- Filter Dropdown -->
+                    <div class="filter-dropdown">
+                        <button class="filter-btn" id="filterBtn" onclick="toggleFilterMenu()">
+                            <span>🔽</span>
+                            <span>Filter by Status</span>
+                            <span class="arrow">▼</span>
+                        </button>
+                        <div class="filter-menu" id="filterMenu">
+                            <div class="filter-option selected" data-filter="all" onclick="applyFilter('all')">
+                                <span class="icon">📋</span>
+                                <span>All Results</span>
+                                <span class="filter-badge" id="countAll">0</span>
+                            </div>
+                            <div class="filter-option" data-filter="ranking-changed" onclick="applyFilter('ranking-changed')">
+                                <span class="icon">📈</span>
+                                <span>Ranking Changed</span>
+                                <span class="filter-badge" id="countRanking">0</span>
+                            </div>
+                            <div class="filter-option" data-filter="reply-received" onclick="applyFilter('reply-received')">
+                                <span class="icon">💬</span>
+                                <span>Reply Received</span>
+                                <span class="filter-badge" id="countReply">0</span>
+                            </div>
+                            <div class="filter-option" data-filter="both" onclick="applyFilter('both')">
+                                <span class="icon">⭐</span>
+                                <span>Both Changes</span>
+                                <span class="filter-badge" id="countBoth">0</span>
+                            </div>
+                            <div class="filter-option" data-filter="no-change" onclick="applyFilter('no-change')">
+                                <span class="icon">➖</span>
+                                <span>No Change</span>
+                                <span class="filter-badge" id="countNoChange">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="export-buttons">
+                        <button class="btn-export-sheets" onclick="exportToGoogleSheets()">
+                            <span>📗</span>
+                            <span>Save to Google Sheets</span>
+                        </button>
+                        <button class="btn-export" onclick="exportToExcel()">
+                            <span>📥</span>
+                            <span>Download Excel</span>
+                        </button>
+                    </div>
                 </div>
+            </div>
+
+            <div class="active-filter-label" id="activeFilterLabel" style="display: none;">
+                <span>🔍 Showing:</span>
+                <strong id="activeFilterText">All Results</strong>
             </div>
 
             <div class="summary-stats" id="summaryStats"></div>
 
+            <div class="no-results-message" id="noResultsMessage">
+                <p>🔍 No results match the selected filter.</p>
+            </div>
+
             <div style="overflow-x: auto;">
-                <table class="results-table">
+                <table class="results-table" id="resultsTable">
                     <thead>
                         <tr>
                             <th>URL</th>
                             <th>Status</th>
-                            <th>Present Rank</th>
+                            <th>Present Rank (Previous)</th>
                         </tr>
                     </thead>
                     <tbody id="resultsTableBody"></tbody>
@@ -479,6 +697,8 @@
 
     <script>
         let pollInterval = null;
+        let allResults = [];
+        let currentFilter = 'all';
 
         function startTracking() {
             const url = document.getElementById('spreadsheetUrl').value.trim();
@@ -554,7 +774,9 @@
             fetch('/api/results')
                 .then(response => response.json())
                 .then(data => {
-                    displayResults(data.results);
+                    allResults = data.results;
+                    displayResults(allResults);
+                    updateFilterCounts();
                     document.getElementById('progressSection').classList.remove('active');
                     document.getElementById('resultsSection').classList.add('active');
                     document.getElementById('trackBtn').disabled = false;
@@ -570,6 +792,7 @@
 
             results.forEach(result => {
                 const row = tbody.insertRow();
+                row.setAttribute('data-status', getStatusType(result.Status));
                 
                 const urlCell = row.insertCell();
                 urlCell.className = 'url-cell';
@@ -579,9 +802,161 @@
                 statusCell.innerHTML = `<span class="status-badge ${getStatusClass(result.Status)}">${result.Status}</span>`;
                 
                 const rankCell = row.insertCell();
-                const rankClass = result['Present Rank'] === 'Out of Top 5' ? 'rank-out' : 'rank-badge';
-                rankCell.innerHTML = `<span class="${rankClass}">${result['Present Rank']}</span>`;
+                rankCell.innerHTML = formatRankDisplay(result['Present Rank'], result['Previous Rank']);
             });
+
+            // Apply current filter
+            applyFilterToTable();
+        }
+
+        function formatRankDisplay(currentRank, previousRank) {
+            const current = currentRank || 'Out of Top 5';
+            const previous = previousRank || 'N/A';
+            
+            let changeClass = 'rank-change-same';
+            let changeIcon = '';
+            
+            if (previous !== 'N/A' && previous !== 'Out of Top 5' && current !== 'Out of Top 5') {
+                const currNum = parseInt(current);
+                const prevNum = parseInt(previous);
+                if (currNum < prevNum) {
+                    changeClass = 'rank-change-up';
+                    changeIcon = ' ↑';
+                } else if (currNum > prevNum) {
+                    changeClass = 'rank-change-down';
+                    changeIcon = ' ↓';
+                }
+            } else if (previous === 'Out of Top 5' && current !== 'Out of Top 5') {
+                changeClass = 'rank-change-up';
+                changeIcon = ' ↑';
+            } else if (previous !== 'Out of Top 5' && previous !== 'N/A' && current === 'Out of Top 5') {
+                changeClass = 'rank-change-down';
+                changeIcon = ' ↓';
+            }
+
+            const currentClass = current === 'Out of Top 5' ? 'rank-out' : 'rank-current';
+            
+            return `
+                <div class="rank-display">
+                    <span class="${currentClass}">${current}</span>
+                    <span class="rank-previous ${changeClass}">(${previous})${changeIcon}</span>
+                </div>
+            `;
+        }
+
+        function getStatusType(status) {
+            if (status.includes('Ranking Changed') && status.includes('Reply Received')) {
+                return 'both';
+            } else if (status.includes('Ranking Changed')) {
+                return 'ranking-changed';
+            } else if (status.includes('Reply Received')) {
+                return 'reply-received';
+            } else {
+                return 'no-change';
+            }
+        }
+
+        function toggleFilterMenu() {
+            const menu = document.getElementById('filterMenu');
+            const btn = document.getElementById('filterBtn');
+            menu.classList.toggle('show');
+            btn.classList.toggle('active');
+        }
+
+        // Close filter menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.filter-dropdown');
+            if (!dropdown.contains(event.target)) {
+                document.getElementById('filterMenu').classList.remove('show');
+                document.getElementById('filterBtn').classList.remove('active');
+            }
+        });
+
+        function applyFilter(filter) {
+            currentFilter = filter;
+            
+            // Update selected state in menu
+            document.querySelectorAll('.filter-option').forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.getAttribute('data-filter') === filter) {
+                    opt.classList.add('selected');
+                }
+            });
+
+            // Update active filter label
+            const labelMap = {
+                'all': 'All Results',
+                'ranking-changed': 'Ranking Changed',
+                'reply-received': 'Reply Received',
+                'both': 'Both Changes',
+                'no-change': 'No Change'
+            };
+            
+            const activeLabel = document.getElementById('activeFilterLabel');
+            const activeText = document.getElementById('activeFilterText');
+            
+            if (filter === 'all') {
+                activeLabel.style.display = 'none';
+            } else {
+                activeLabel.style.display = 'flex';
+                activeText.textContent = labelMap[filter];
+            }
+
+            // Apply filter to table
+            applyFilterToTable();
+
+            // Close menu
+            document.getElementById('filterMenu').classList.remove('show');
+            document.getElementById('filterBtn').classList.remove('active');
+        }
+
+        function applyFilterToTable() {
+            const rows = document.querySelectorAll('#resultsTableBody tr');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                
+                if (currentFilter === 'all' || status === currentFilter) {
+                    row.classList.remove('hidden-row');
+                    visibleCount++;
+                } else {
+                    row.classList.add('hidden-row');
+                }
+            });
+
+            // Show/hide no results message
+            const noResultsMsg = document.getElementById('noResultsMessage');
+            const table = document.getElementById('resultsTable');
+            
+            if (visibleCount === 0 && allResults.length > 0) {
+                noResultsMsg.classList.add('show');
+                table.style.display = 'none';
+            } else {
+                noResultsMsg.classList.remove('show');
+                table.style.display = 'table';
+            }
+        }
+
+        function updateFilterCounts() {
+            const counts = {
+                all: allResults.length,
+                'ranking-changed': 0,
+                'reply-received': 0,
+                'both': 0,
+                'no-change': 0
+            };
+
+            allResults.forEach(r => {
+                const type = getStatusType(r.Status);
+                counts[type]++;
+            });
+
+            document.getElementById('countAll').textContent = counts.all;
+            document.getElementById('countRanking').textContent = counts['ranking-changed'];
+            document.getElementById('countReply').textContent = counts['reply-received'];
+            document.getElementById('countBoth').textContent = counts['both'];
+            document.getElementById('countNoChange').textContent = counts['no-change'];
         }
 
         function calculateStats(results) {
