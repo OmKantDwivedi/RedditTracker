@@ -19,4 +19,4 @@ TOP_N_COMMENTS = 5
 REPLY_WINDOW_HOURS = 72
 
 # Output
-OUTPUT_COLUMNS = ['URL', 'Status', 'Present Rank']
+OUTPUT_COLUMNS = ['URL', 'Status', 'Present Rank', 'Previous Rank']
