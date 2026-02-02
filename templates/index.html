@@ -352,7 +352,41 @@
             font-size: 0.9rem;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
+            background: #f0f7ff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .btn-bulk-open {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+            transition: all 0.3s;
+        }
+
+        .btn-bulk-open:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(238, 90, 36, 0.3);
+        }
+
+        #filteredCount {
+            background: #667eea;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
         .results-table {
@@ -672,6 +706,11 @@
             <div class="active-filter-label" id="activeFilterLabel" style="display: none;">
                 <span>🔍 Showing:</span>
                 <strong id="activeFilterText">All Results</strong>
+                <span id="filteredCount"></span>
+                <button class="btn-bulk-open" id="bulkOpenBtn" onclick="bulkOpenLinks()">
+                    <span>🔗</span>
+                    <span>Bulk Open All</span>
+                </button>
             </div>
 
             <div class="summary-stats" id="summaryStats"></div>
@@ -894,6 +933,7 @@
             
             const activeLabel = document.getElementById('activeFilterLabel');
             const activeText = document.getElementById('activeFilterText');
+            const filteredCount = document.getElementById('filteredCount');
             
             if (filter === 'all') {
                 activeLabel.style.display = 'none';
@@ -902,8 +942,13 @@
                 activeText.textContent = labelMap[filter];
             }
 
-            // Apply filter to table
-            applyFilterToTable();
+            // Apply filter to table and get visible count
+            const visibleCount = applyFilterToTable();
+            
+            // Update filtered count badge
+            if (filter !== 'all') {
+                filteredCount.textContent = `${visibleCount} links`;
+            }
 
             // Close menu
             document.getElementById('filterMenu').classList.remove('show');
@@ -936,6 +981,83 @@
                 noResultsMsg.classList.remove('show');
                 table.style.display = 'table';
             }
+
+            return visibleCount;
+        }
+
+        function bulkOpenLinks() {
+            const rows = document.querySelectorAll('#resultsTableBody tr:not(.hidden-row)');
+            const urls = [];
+            
+            rows.forEach(row => {
+                const link = row.querySelector('.url-link');
+                if (link) {
+                    urls.push(link.href);
+                }
+            });
+
+            if (urls.length === 0) {
+                alert('No links to open!');
+                return;
+            }
+
+            // Confirm before opening many tabs
+            if (urls.length > 10) {
+                const confirmed = confirm(`You are about to open ${urls.length} links in new tabs. Continue?`);
+                if (!confirmed) return;
+            }
+
+            // Open each URL in a new tab
+            urls.forEach((url, index) => {
+                // Small delay between opens to prevent browser blocking
+                setTimeout(() => {
+                    window.open(url, '_blank');
+                }, index * 100);
+            });
+
+            // Show notification
+            showBulkOpenNotification(urls.length);
+        }
+
+        function showBulkOpenNotification(count) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            notification.innerHTML = `
+                <span style="font-size: 1.5rem;">🚀</span>
+                <span>Opening ${count} links in new tabs...</span>
+            `;
+            
+            // Add animation keyframes
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
         }
 
         function updateFilterCounts() {
